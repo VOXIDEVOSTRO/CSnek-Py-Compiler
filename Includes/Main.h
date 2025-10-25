@@ -18,8 +18,9 @@ enum
 /**
  * Constanats
  */
-#define LimFiles 255	/*uint8_t*/
-#define LimFlags 255
+#define LimFiles	  255	/*uint8_t*/
+#define LimFlags	  255
+#define LimLineBuffer 4096
 
 /**
  * Prototypes

@@ -13,6 +13,8 @@ Objects  			:= $(patsubst ./%,%,$(CSource))
 Objects  			:= $(patsubst %.c,$(ObjectDirectory)/%.o,$(Objects))
 AllBins  			:= $(FinalBuildDirectory)/$(SnekCompiler)
 
+CmpFlags			+= -IIncludes
+
 #Default
 .PHONY: All
 All: $(AllBins)

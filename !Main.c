@@ -4,9 +4,10 @@
 
 /*Standard Headers*/
 #include <stdio.h>
-#include <strings.h>
+#include <string.h>
 /*Main Header*/
-#include "!Main.h"
+#include <Main.h>
+#include <PyTokens.h>
 
 /*
 
@@ -40,14 +41,37 @@ int
         }
     }
 
-#ifdef PyDebugCompiler
-    printf("Source Files (%d):\n", FileCount);
     for (int i = 0; i < FileCount; i++)
 	{
-        printf("  %s\n", 
-		SourceFiles[i]);
-    }
+        FILE *PythonFile = fopen(SourceFiles[i], "r"/*Readonly*/);
+        if (!PythonFile)
+		{
+#ifdef PyDebugCompiler
+            fprintf(stderr, "Could not open %s\n", SourceFiles[i]);
+#endif
+            continue;
+        }
 
+#ifdef PyDebugCompiler
+        printf("Lexing file: %s\n", SourceFiles[i]);
+#endif
+
+        PyTokenList PyListTokens = { .Count = 0 };
+        LexOutFile(PythonFile, &PyListTokens);
+        fclose(PythonFile);
+#ifdef PyDebugCompiler
+        for (int t = 0; t < PyListTokens.Count; t++)
+		{
+            PyToken *Token = &PyListTokens.Tokens[t];
+            printf("%s -> %d (line %d, col %d)\n",
+                   Token->Value ? Token->Value : "<null>",
+                   Token->Type,
+                   Token->Line,
+                   Token->Column);
+        }
+#endif
+    }
+#ifdef PyDebugCompiler
     printf("Flags (%d):\n", FlagCount);
     for (int i = 0; i < FlagCount; i++)
 	{
