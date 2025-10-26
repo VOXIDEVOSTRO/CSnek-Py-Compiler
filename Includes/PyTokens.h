@@ -45,8 +45,13 @@ enum
     IDENTIFIER,
     INTEGER,
     FLOAT,
-    STRING,
-    BYTES,
+    STRING,     /* "..." or '...' */
+    FSTRING,    /* f"..." or F"..." */
+    RSTRING,    /* r"..." or R"..." */
+    FRSTRING,   /* fr"..." or rf"..." */
+    BYTES,      /* b"..." or B"..." */
+    RBSTRING,   /* rb"..." or br"..." */
+    USTRING,    /* u"..." legacy */
     PLUS,         /* +	*/
     MINUS,        /* -	*/
     STAR,         /* *	*/
@@ -130,7 +135,7 @@ struct
 /**
  * Prototypes
  */
-/*Tokenizer.c*/
+/*Tokens.c*/
 PyTokenCat MirrorCheckToken(const char *text);
 /*Lexer.c*/
 void Emit(PyTokenList *Output, PyTokenCat TokenClass, const char *Lexeme, int EmitLine, int EmitColumn);

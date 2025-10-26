@@ -6,6 +6,7 @@
 
 /**
  * Match The Token
+ * Only keywords and Operators
  */
 PyTokenCat
 MirrorCheckToken(const char *text)
