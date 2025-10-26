@@ -54,7 +54,8 @@ LexOutFile(FILE *File, PyTokenList *Output)
     char LineBuffer[LimLineBuffer];
     int Line = 0;
 
-    while (fgets(LineBuffer, sizeof(LineBuffer), File)) {
+    while (fgets(LineBuffer, sizeof(LineBuffer), File))
+	{
         Line++;
 #ifdef PyDebugCompiler
         fprintf(stderr, "DEBUG: line %d read: %s", Line, LineBuffer);
@@ -74,7 +75,8 @@ LexOutFile(FILE *File, PyTokenList *Output)
 #endif
 
             /* whitespace */
-            if (Character == ' ' || Character == '\t' || Character == '\r') {
+            if (Character == ' ' || Character == '\t' || Character == '\r')
+			{
 #ifdef PyDebugCompiler
                 printf("DEBUG: whitespace skip\n");
 #endif
@@ -83,7 +85,8 @@ LexOutFile(FILE *File, PyTokenList *Output)
             }
 
             /* newline */
-            if (Character == '\n') {
+            if (Character == '\n')
+			{
 #ifdef PyDebugCompiler
                 printf("DEBUG: newline emit\n");
 #endif
@@ -93,25 +96,28 @@ LexOutFile(FILE *File, PyTokenList *Output)
             }
 
             /* identifier or keyword */
-            if (isalpha(Character) || Character == '_') {
+            if (isalpha(Character) || Character == '_')
+			{
                 int Start = Index;
 #ifdef PyDebugCompiler
                 printf("DEBUG: identifier start at index=%d\n", Start);
 #endif
-                while (LineBuffer[Index] != '\0' &&
-                       (isalnum((unsigned char)LineBuffer[Index]) || LineBuffer[Index] == '_')) {
+                while (LineBuffer[Index] != '\0' && (isalnum((unsigned char)LineBuffer[Index]) || LineBuffer[Index] == '_'))
+				{
                     Index++; Column++;
                 }
                 int Length = Index - Start;
 #ifdef PyDebugCompiler
                 printf("DEBUG: identifier length=%d\n", Length);
 #endif
-                if (Length > 0) {
+                if (Length > 0)
+				{
                     char *Lexeme = strndup(&LineBuffer[Start], Length);
 #ifdef PyDebugCompiler
                     printf("DEBUG: identifier lexeme='%s'\n", Lexeme ? Lexeme : "<alloc-failed>");
 #endif
-                    if (Lexeme) {
+                    if (Lexeme)
+					{
                         Emit(Output, MirrorCheckToken(Lexeme), Lexeme, Line, Column - Length);
                         free(Lexeme);
                     }
@@ -119,26 +125,137 @@ LexOutFile(FILE *File, PyTokenList *Output)
                 continue;
             }
 
-            /* number (decimal integer) */
-            if (isdigit(Character)) {
-                int Start = Index;
+			/* number (integer or float) */
+			if (isdigit(Character))
+			{
+			    int Start = Index;
 #ifdef PyDebugCompiler
-                printf("DEBUG: number start at index=%d\n", Start);
+			    printf("DEBUG: number start at index=%d\n", Start);
 #endif
-                while (LineBuffer[Index] != '\0' && isdigit((unsigned char)LineBuffer[Index])) {
+			
+			    /* consume leading digits */
+			    while (LineBuffer[Index] != '\0' && isdigit((unsigned char)LineBuffer[Index]))
+				{
+			        Index++; Column++;
+			    }
+			
+			    int isFloat = 0;
+			
+			    /* check for decimal point with following digit(s) */
+			    if (LineBuffer[Index] == '.' && isdigit((unsigned char)LineBuffer[Index+1]))
+				{
+			        isFloat = 1;
+			        Index++; Column++; /* consume '.' */
+			        while (LineBuffer[Index] != '\0' && isdigit((unsigned char)LineBuffer[Index]))
+					{
+			            Index++; Column++;
+			        }
+			    }
+			
+			    int Length = Index - Start;
+#ifdef PyDebugCompiler
+			    printf("DEBUG: %s length=%d\n", isFloat ? "float" : "integer", Length);
+#endif
+			
+			    if (Length > 0) {
+			        char *Lexeme = strndup(&LineBuffer[Start], Length);
+#ifdef PyDebugCompiler
+			        printf("DEBUG: %s lexeme='%s'\n",
+			               isFloat ? "float" : "integer",
+			               Lexeme ? Lexeme : "<alloc-failed>");
+#endif
+			        if (Lexeme)
+					{
+			            Emit(Output, isFloat ? FLOAT : INTEGER, Lexeme, Line, Column - Length);
+			            free(Lexeme);
+			        }
+			    }
+			    continue;
+			}
+
+			/* comments */
+            if (Character == '#')
+			{
+#ifdef PyDebugCompiler
+                printf("DEBUG: comment start at line=%d col=%d\n", Line, Column);
+#endif
+                while (LineBuffer[Index] != '\0' && LineBuffer[Index] != '\n')
+				{
                     Index++; Column++;
                 }
-                int Length = Index - Start;
+                continue;
+            }
+
+            /* float or integer */
+            if (isdigit(Character))
+			{
+                int Start = Index;
 #ifdef PyDebugCompiler
-                printf("DEBUG: number length=%d\n", Length);
+                printf("DEBUG: number/float start at index=%d\n", Start);
 #endif
+                while (LineBuffer[Index] != '\0' && isdigit((unsigned char)LineBuffer[Index]))
+				{
+                    Index++; Column++;
+                }
+                int isFloat = 0;
+                if (LineBuffer[Index] == '.' && isdigit((unsigned char)LineBuffer[Index+1]))
+				{
+                    isFloat = 1;
+                    Index++; Column++;
+                    while (LineBuffer[Index] != '\0' && isdigit((unsigned char)LineBuffer[Index]))
+					{
+                        Index++; Column++;
+                    }
+                }
+                int Length = Index - Start;
                 if (Length > 0) {
                     char *Lexeme = strndup(&LineBuffer[Start], Length);
 #ifdef PyDebugCompiler
-                    printf("DEBUG: number lexeme='%s'\n", Lexeme ? Lexeme : "<alloc-failed>");
+                    printf("DEBUG: %s lexeme='%s'\n", isFloat ? "float" : "integer", Lexeme ? Lexeme : "<alloc-failed>");
 #endif
-                    if (Lexeme) {
-                        Emit(Output, INTEGER, Lexeme, Line, Column - Length);
+                    if (Lexeme)
+					{
+                        Emit(Output, isFloat ? FLOAT : INTEGER, Lexeme, Line, Column - Length);
+                        free(Lexeme);
+                    }
+                }
+                continue;
+            }
+
+            /* strings (single or double quotes) */
+            if (Character == '"' || Character == '\'')
+			{
+                char quote = Character;
+                int Start = Index;
+#ifdef PyDebugCompiler
+                printf("DEBUG: string start at index=%d with quote=%c\n", Start, quote);
+#endif
+                Index++; Column++;
+                while (LineBuffer[Index] != '\0' && LineBuffer[Index] != quote && LineBuffer[Index] != '\n')
+				{
+                    if (LineBuffer[Index] == '\\' && LineBuffer[Index+1] != '\0')
+					{
+                        Index += 2; Column += 2; /* skip escaped char */
+                    } 
+					else
+					{
+                        Index++; Column++;
+                    }
+                }
+                if (LineBuffer[Index] == quote)
+				{
+                    Index++; Column++;
+                }
+                int Length = Index - Start;
+                if (Length > 0)
+				{
+                    char *Lexeme = strndup(&LineBuffer[Start], Length);
+#ifdef PyDebugCompiler
+                    printf("DEBUG: string lexeme='%s'\n", Lexeme ? Lexeme : "<alloc-failed>");
+#endif
+                    if (Lexeme)
+					{
+                        Emit(Output, STRING, Lexeme, Line, Column - Length);
                         free(Lexeme);
                     }
                 }
@@ -146,32 +263,38 @@ LexOutFile(FILE *File, PyTokenList *Output)
             }
 
             /* multi-char operators */
-            if (LineBuffer[Index] != '\0' && LineBuffer[Index+1] != '\0') {
-                if (LineBuffer[Index] == '=' && LineBuffer[Index+1] == '=') {
+            if (LineBuffer[Index] != '\0' && LineBuffer[Index+1] != '\0')
+			{
+                if (LineBuffer[Index] == '=' && LineBuffer[Index+1] == '=')
+				{
 #ifdef PyDebugCompiler
                     printf("DEBUG: match '==' at line=%d col=%d\n", Line, Column);
 #endif
                     Emit(Output, EQ, "==", Line, Column); Index += 2; Column += 2; continue;
                 }
-                if (LineBuffer[Index] == '!' && LineBuffer[Index+1] == '=') {
+                if (LineBuffer[Index] == '!' && LineBuffer[Index+1] == '=')
+				{
 #ifdef PyDebugCompiler
                     printf("DEBUG: match '!=' at line=%d col=%d\n", Line, Column);
 #endif
                     Emit(Output, NEQ, "!=", Line, Column); Index += 2; Column += 2; continue;
                 }
-                if (LineBuffer[Index] == '<' && LineBuffer[Index+1] == '=') {
+                if (LineBuffer[Index] == '<' && LineBuffer[Index+1] == '=')
+				{
 #ifdef PyDebugCompiler
                     printf("DEBUG: match '<=' at line=%d col=%d\n", Line, Column);
 #endif
                     Emit(Output, LTE, "<=", Line, Column); Index += 2; Column += 2; continue;
                 }
-                if (LineBuffer[Index] == '>' && LineBuffer[Index+1] == '=') {
+                if (LineBuffer[Index] == '>' && LineBuffer[Index+1] == '=')
+				{
 #ifdef PyDebugCompiler
                     printf("DEBUG: match '>=' at line=%d col=%d\n", Line, Column);
 #endif
                     Emit(Output, GTE, ">=", Line, Column); Index += 2; Column += 2; continue;
                 }
-                if (LineBuffer[Index] == '-' && LineBuffer[Index+1] == '>') {
+                if (LineBuffer[Index] == '-' && LineBuffer[Index+1] == '>')
+				{
 #ifdef PyDebugCompiler
                     printf("DEBUG: match '->' at line=%d col=%d\n", Line, Column);
 #endif
@@ -179,7 +302,8 @@ LexOutFile(FILE *File, PyTokenList *Output)
                 }
                 /* need 3-char lookahead for ellipsis */
                 if (LineBuffer[Index+2] != '\0' &&
-                    LineBuffer[Index] == '.' && LineBuffer[Index+1] == '.' && LineBuffer[Index+2] == '.') {
+                    LineBuffer[Index] == '.' && LineBuffer[Index+1] == '.' && LineBuffer[Index+2] == '.')
+					{
 #ifdef PyDebugCompiler
                     printf("DEBUG: match '...' at line=%d col=%d\n", Line, Column);
 #endif
@@ -202,7 +326,7 @@ LexOutFile(FILE *File, PyTokenList *Output)
 #ifdef PyDebugCompiler
     printf("DEBUG: emit EOF token\n");
 #endif
-    Emit(Output, EndOF, "<EOF>", Line + 1, 1);
+    Emit(Output, EndOF, "<EOF>", Line + 1, 1); /* Emit a End of File */
 
 #ifdef PyDebugCompiler
     fprintf(stderr, "DEBUG: LexOutFile exit, total tokens=%d\n", Output->Count);
