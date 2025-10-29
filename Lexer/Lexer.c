@@ -55,7 +55,7 @@ LexOutFile(FILE *File, PyTokenList *Output)
     int Line = 0;
 	int IndentStack[LimLineBuffer];
 	int IndentTop = 0;
-	IndentStack[0] = 0;  /* base indent level */
+	IndentStack[0] = 0;  /* base */
 
 
     while (fgets(LineBuffer, sizeof(LineBuffer), File))

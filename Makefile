@@ -1,5 +1,5 @@
 Ccmp      			:= gcc
-CmpFlags  			:= -O2 -Wall -Wextra -std=c11
+CmpFlags  			:= -O2 -Wall -Wextra -std=c11 -Wl,--no-undefined
 
 
 SnekCompiler     	:= csnekpy
@@ -30,9 +30,15 @@ $(FinalBuildDirectory):
 	mkdir -p $@
 
 #Install System wide
+Prefix ?= /usr/local
+LinuxBin := $(Prefix)/bin
+
+# Override with make InstallLinux Prefix=/usr (or whatever the system wide install path is)
+
 .PHONY: installLinux
-InstallLinux: $(AllBins)
-	sudo cp $(AllBins) /usr/local/bin/$(SnekCompiler)
+installLinux: $(AllBins)
+	@mkdir -p $(LinuxBin)
+	sudo cp $(AllBins) $(LinuxBin)/$(SnekCompiler)
 
 #Clean
 .PHONY: Clean

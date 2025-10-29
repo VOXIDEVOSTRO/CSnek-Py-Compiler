@@ -45,13 +45,13 @@ enum
     IDENTIFIER,
     INTEGER,
     FLOAT,
-    STRING,     /* "..." or '...' */
-    FSTRING,    /* f"..." or F"..." */
-    RSTRING,    /* r"..." or R"..." */
-    FRSTRING,   /* fr"..." or rf"..." */
-    BYTES,      /* b"..." or B"..." */
-    RBSTRING,   /* rb"..." or br"..." */
-    USTRING,    /* u"..." legacy */
+    STRING,       /* "..." or '...' 	*/
+    FSTRING,      /* f"..." or F"..." 	*/
+    RSTRING,      /* r"..." or R"..."	*/
+    FRSTRING,     /* fr"..." or rf"..." */
+    BYTES,        /* b"..." or B"..." 	*/
+    RBSTRING,     /* rb"..." or br"..." */
+    USTRING,      /* u"..." legacy 		*/
     PLUS,         /* +	*/
     MINUS,        /* -	*/
     STAR,         /* *	*/

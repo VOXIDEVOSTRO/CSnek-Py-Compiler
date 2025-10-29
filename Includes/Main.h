@@ -1,8 +1,5 @@
 #pragma once
-/**
- * Debug Toggle
- */
-#define PyDebugCompiler /*Uncomment for Debug*/
+#include <__Debug__.h>
 
 /**
  * PyErrors

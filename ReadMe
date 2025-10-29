@@ -1,1 +1,29 @@
-A Simple Python Source Compiler for x86_64 ELF Binaries
+A Simple Python to C Compiler
+
+How to Install from Source and Build CSnek Compiler Yourself:
+
+- Step 1: Clone this Repository:
+	```bash
+	git clone https://github.com/VOXIDEVOSTRO/CSnek-Py-Compiler.git
+	```
+
+- Step 2: Go to the Cloned Repository
+	```bash
+	cd CSnek-Py-Compiler
+	```
+
+- Step 3: Find out your linux distro, based of it know the system wide install path do:
+	```bash
+	./BuildC.sh --prefix=/<whatever your system wide install path is>
+	```
+	Default is /usr/local (Debian/Ubuntu)
+	So you can directly:
+	```bash
+	./BuildC.sh
+	```
+
+- Step 4: Comfirm its built and installed successfully by just running:
+	```bash
+	csnekpy
+	```
+	If it returns "Flags (0):", It means Installation was successful

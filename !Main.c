@@ -8,6 +8,9 @@
 /*Main Header*/
 #include <Main.h>
 #include <PyTokens.h>
+#include <Nodes.h>
+#include <PyTree.h>
+#include <Rules.h>
 
 /*
 
@@ -56,6 +59,11 @@ int
         printf("Lexing file: %s\n", SourceFiles[i]);
 #endif
 
+		/**
+		 * 
+		 * Lexical Analysis
+		 * 
+		 */
         PyTokenList PyListTokens = { .Count = 0 };
         LexOutFile(PythonFile, &PyListTokens);
         fclose(PythonFile);
@@ -70,8 +78,38 @@ int
                    Token->Column);
         }
 #endif
+		/** 
+    	 * Parsing
+    	 */
+    	PyTreeParser 
+		parser = 
+		{
+    	    .Tokens   = PyListTokens.Tokens,
+    	    .Count    = PyListTokens.Count,
+    	    .Position = 0
+    	};
+
+    	PyNode *root = TreeParseModule(&parser);
+
+    	if (root)
+		{
+#ifdef PyDebugCompiler
+    	    printf("Parsed AST for %s successfully.\n", SourceFiles[i]);
+    	    PrintAST(root, 0);  /* debug dump */
+#endif
+    	    DeallocNode(root);
+    	} 
+		else
+		{
+#ifdef PyDebugCompiler
+    	    fprintf(stderr, "Parsing failed for %s\n", SourceFiles[i]);
+#endif
+    	}
     }
 #ifdef PyDebugCompiler
+	/**
+	 * TODO: Add Flags
+	 */
     printf("Flags (%d):\n", FlagCount);
     for (int i = 0; i < FlagCount; i++)
 	{
